@@ -1,4 +1,7 @@
 class ArticlesController < ApplicationController
+skip_before_filter :verify_authenticity_token
+http_basic_authenticate_with name: "dhh", password: "secret", except: [:index, :show]
+
   def index
     @articles = Article.all
   end
@@ -8,9 +11,7 @@ class ArticlesController < ApplicationController
   end
 
   def create
-    p params[:article]
-    params.permit!
-    @article = Article.new(params[:article])
+    @article = Article.new(article_params)
     if @article.save
       redirect_to @article
     else
@@ -18,7 +19,15 @@ class ArticlesController < ApplicationController
     end
   end
 
+  def destroy
+    p "DESTROY "*50
+    @article = Article.find(params[:id])
+    @article.destroy
+    redirect_to @article
+  end
+
   def show
+    p "show "*50
     @article = Article.find(params[:id])
   end
 
@@ -28,23 +37,17 @@ class ArticlesController < ApplicationController
 
 
   def update
-    params.permit!
     @article = Article.find(params[:id])
- 
     if @article.update(article_params)
       redirect_to @article
     else
       render 'edit'
     end
   end
-  def destroy
-    @article = Article.find(params[:id])
-    @article.destroy
-   
-    redirect_to articles_path
-  end
+
   private
     def article_params
       params.require(:article).permit(:title, :text)
     end
+
 end
